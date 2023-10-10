@@ -1,0 +1,45 @@
+<div class="departures">
+  <div>
+    <label for="kierunek">Wybierz kierunek:</label>
+    <select
+      id="kierunek"
+      [(ngModel)]="selectedKierunek"
+      (change)="onKierunekChange()"
+    >
+      <option *ngFor="let kierunek of kierunki" [value]="kierunek">
+        {{ kierunek }}
+      </option>
+    </select>
+  </div>
+
+  <div>
+    <label for="przystanek">Wybierz przystanek:</label>
+    <select
+      id="przystanek"
+      [(ngModel)]="selectedPrzystanek"
+      (change)="onPrzystanekChange()"
+    >
+      <option
+        *ngFor="let przystanek of filteredPrzystanki"
+        [value]="przystanek"
+      >
+        {{ przystanek }}
+      </option>
+    </select>
+  </div>
+
+  <div *ngIf="selectedPrzystanek">
+    <h3>Najbliższy odjazd z {{ selectedPrzystanek }}</h3>
+    <h4 *ngIf="nextDepartureTime">{{ nextDepartureTime }}</h4>
+  </div>
+
+  <div *ngIf="selectedPrzystanek">
+    <h3>Godziny odjazdów dla {{ selectedPrzystanek }}</h3>
+
+    <div class="departure-times">
+      <p *ngFor="let godzina of getOdjazdyForPrzystanek(selectedPrzystanek)">
+        {{ godzina }}
+      </p>
+    </div>
+  </div>
+</div>

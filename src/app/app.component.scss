@@ -1,0 +1,20 @@
+header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.logo--img {
+  width: 150px;
+}
+footer {
+  position: fixed;
+  bottom: 32px;
+  width: 100%;
+  text-align: center;
+  a {
+    color: black;
+    text-decoration: none;
+  }
+}
