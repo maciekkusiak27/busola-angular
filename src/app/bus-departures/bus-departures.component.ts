@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { departuresData } from '../data/departures';
+import { DeparturesService } from '../services/departures.service';
+import { DeparturesData } from '../models/departure.model';
 
 @Component({
   selector: 'app-bus-departures',
@@ -7,118 +8,122 @@ import { departuresData } from '../data/departures';
   styleUrls: ['./bus-departures.component.scss'],
 })
 export class BusDeparturesComponent implements OnInit {
-  kierunki: string[] = [];
-  selectedKierunek: string;
-  przystanki = departuresData.przystanki;
-  selectedPrzystanek: string;
-  uniqueBusStops: string[] = [];
+  directions: string[] = [];
+  selectedDirection: string = '';
+  stops: DeparturesData['stops'] = [];
+  selectedStop: string = '';
+  uniqueStops: string[] = [];
   today: string = '';
   nextDepartureTime: any;
+  departuresData: DeparturesData = { stops: [] };
+
+  constructor(private departuresService: DeparturesService) {}
 
   ngOnInit() {
-    this.uniqueBusStops = this.getUniqueBusStops();
-
-    const unikalneKierunki = new Set(
-      departuresData.przystanki.map((przystanek) => przystanek.kierunek)
+    this.departuresService.getDeparturesData().subscribe(
+      (data: any) => {
+        this.departuresData = data.departuresData;
+        if (this.departuresData && this.departuresData.stops) {
+          this.stops = this.departuresData.stops;
+          const uniqueDirections = Array.from(
+            new Set(
+              this.departuresData.stops.map((stop: any) => stop.direction)
+            )
+          );
+          this.directions = uniqueDirections;
+          this.selectedDirection =
+            this.selectedDirection === 'Kraków'
+              ? this.selectedDirection
+              : 'Myślenice';
+          this.today = this.getDayOfWeek(new Date());
+          this.defaultStops();
+        } else {
+          console.error('Nieprawidłowa struktura danych z API.');
+        }
+      },
+      (error) => {
+        console.error('Błąd podczas pobierania danych z API:', error);
+      }
     );
-    this.kierunki = Array.from(unikalneKierunki);
-
-    this.selectedKierunek =
-      this.selectedKierunek === 'Kraków' ? this.selectedKierunek : 'Myślenice';
-
-    this.przystanki = departuresData.przystanki;
-
-    this.today = this.getDayOfWeek(new Date());
-
-    this.onKierunekChange();
-  }
-
-  private getUniqueBusStops(): string[] {
-    const uniqueBusStopsSet = new Set<string>();
-    departuresData.przystanki.forEach((przystanek) => {
-      uniqueBusStopsSet.add(przystanek.kierunek);
-    });
-    return Array.from(uniqueBusStopsSet);
   }
 
   private getDayOfWeek(date: Date): string {
     const daysOfWeek = [
-      'niedziela',
-      'poniedziałek',
-      'wtorek',
-      'środa',
-      'czwartek',
-      'piątek',
-      'sobota',
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
     ];
     return daysOfWeek[date.getDay()];
   }
 
-  get filteredPrzystanki() {
-    if (!this.selectedKierunek) {
+  get filteredStops() {
+    if (!this.selectedDirection || !this.stops) {
       return [];
     }
 
-    let filteredTyp: string;
-    if (this.today === 'sobota' || this.today === 'niedziela') {
-      filteredTyp = this.today;
+    let filteredType: string;
+    if (this.today === 'Saturday' || this.today === 'Sunday') {
+      filteredType = this.today.toLowerCase();
     } else {
-      filteredTyp = 'pon-pt';
+      filteredType = 'mon-fri';
     }
 
-    const todayFilteredPrzystanki = this.przystanki.filter(
-      (przystanek) =>
-        przystanek.kierunek === this.selectedKierunek &&
-        przystanek.typ === filteredTyp
+    const todayFilteredStops = this.stops.filter(
+      (stop) =>
+        stop.direction === this.selectedDirection && stop.type === filteredType
     );
 
-    return todayFilteredPrzystanki.map((przystanek) => przystanek.nazwa);
+    return todayFilteredStops.map((stop) => stop.name);
   }
 
-  onPrzystanekChange() {
-    this.nextDepartureTime = this.getNextDepartureTime(this.selectedPrzystanek);
+  onStopChange() {
+    this.nextDepartureTime = this.getNextDepartureTime(this.selectedStop);
   }
 
-  onKierunekChange() {
-    if (this.selectedKierunek === 'Myślenice') {
-      this.selectedPrzystanek = 'KrakówMDA';
-    } else if (this.selectedKierunek === 'Kraków') {
-      this.selectedPrzystanek = 'MyśleniceDA';
-    }
+  onDirectionChange() {
+    this.defaultStops();
 
     this.updateNextDepartureTime();
   }
 
+  defaultStops() {
+    if (this.selectedDirection === 'Myślenice') {
+      this.selectedStop = 'Kraków MDA';
+    } else if (this.selectedDirection === 'Kraków') {
+      this.selectedStop = 'Myślenice DA';
+    }
+  }
+
   updateNextDepartureTime() {
-    this.nextDepartureTime = this.getNextDepartureTime(this.selectedPrzystanek);
+    this.nextDepartureTime = this.getNextDepartureTime(this.selectedStop);
   }
 
-  getOdjazdyForPrzystanek(przystanekNazwa: string) {
-    const przystanek = this.przystanki.find(
-      (item) => item.nazwa === przystanekNazwa
-    );
-    return przystanek ? przystanek.odjazdy : [];
+  getDeparturesForStop(stopName: string) {
+    const stop = this.stops.find((item) => item.name === stopName);
+    return stop ? stop.departures : [];
   }
 
-  getNextDepartureTime(selectedPrzystanek: string): string | undefined {
+  getNextDepartureTime(selectedStop: string): string | undefined {
     const today = new Date();
     const currentHour = today.getHours();
     const currentMinute = today.getMinutes();
 
-    const przystanek = this.przystanki.find(
-      (item) => item.nazwa === selectedPrzystanek
-    );
+    const stop = this.stops.find((item) => item.name === selectedStop);
 
-    if (przystanek) {
-      const departureTimes = przystanek.odjazdy.map((odjazd) => {
-        const [hour, minute] = odjazd.split(':').map(Number);
+    if (stop) {
+      const departureTimes = stop.departures.map((departure: string) => {
+        const [hour, minute] = departure.split(':').map(Number);
         return hour * 60 + minute;
       });
 
       const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
       const nextDepartureInMinutes = departureTimes.find(
-        (time) => time > currentTimeInMinutes
+        (time: number) => time > currentTimeInMinutes
       );
 
       if (nextDepartureInMinutes !== undefined) {

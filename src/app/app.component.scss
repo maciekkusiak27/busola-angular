@@ -10,9 +10,13 @@ header {
 }
 footer {
   position: fixed;
-  bottom: 32px;
+  bottom: 0;
   width: 100%;
   text-align: center;
+  background-color: white;
+  display: flex;
+  padding: 16px;
+  justify-content: center;
   a {
     color: black;
     text-decoration: none;

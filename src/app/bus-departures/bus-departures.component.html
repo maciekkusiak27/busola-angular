@@ -1,45 +1,40 @@
 <div class="departures">
-  <div>
-    <label for="kierunek">Wybierz kierunek:</label>
+  <div *ngIf="directions">
+    <label for="direction">Wybierz kierunek:</label>
     <select
-      id="kierunek"
-      [(ngModel)]="selectedKierunek"
-      (change)="onKierunekChange()"
+      id="direction"
+      [(ngModel)]="selectedDirection"
+      (change)="onDirectionChange()"
     >
-      <option *ngFor="let kierunek of kierunki" [value]="kierunek">
-        {{ kierunek }}
+      <option *ngFor="let direction of directions" [value]="direction">
+        {{ direction }}
       </option>
     </select>
   </div>
 
-  <div>
-    <label for="przystanek">Wybierz przystanek:</label>
-    <select
-      id="przystanek"
-      [(ngModel)]="selectedPrzystanek"
-      (change)="onPrzystanekChange()"
-    >
-      <option
-        *ngFor="let przystanek of filteredPrzystanki"
-        [value]="przystanek"
-      >
-        {{ przystanek }}
+  <div *ngIf="filteredStops">
+    <label for="stop">Wybierz przystanek:</label>
+    <select id="stop" [(ngModel)]="selectedStop" (change)="onStopChange()">
+      <option *ngFor="let stop of filteredStops" [ngValue]="stop">
+        {{ stop }}
       </option>
     </select>
   </div>
 
-  <div *ngIf="selectedPrzystanek">
-    <h3>Najbliższy odjazd z {{ selectedPrzystanek }}</h3>
+  <div *ngIf="selectedStop">
+    <h3>Następny odjazd z {{ selectedStop }}:</h3>
     <h4 *ngIf="nextDepartureTime">{{ nextDepartureTime }}</h4>
   </div>
 
-  <div *ngIf="selectedPrzystanek">
-    <h3>Godziny odjazdów dla {{ selectedPrzystanek }}</h3>
+  <div *ngIf="selectedStop">
+    <h3>Odjazdy z {{ selectedStop }}</h3>
 
     <div class="departure-times">
-      <p *ngFor="let godzina of getOdjazdyForPrzystanek(selectedPrzystanek)">
-        {{ godzina }}
+      <p *ngFor="let time of getDeparturesForStop(selectedStop)">
+        {{ time }}
       </p>
     </div>
   </div>
+
+  <h4>Wkrótce do pobrania aplikacja mobilna</h4>
 </div>

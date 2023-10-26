@@ -1,12 +1,11 @@
 export interface Departure {
-  nazwa: string;
-  kierunek: string;
-  odjazdy: string[];
-  typ: string;
-  przewoźnik?: string;
+  name: string;
+  direction: string;
+  departures: string[];
+  type: string;
+  carrier: string;
 }
 
-export interface Przystanek {
-  nazwa: string;
-  kierunki: string[];
+export interface DeparturesData {
+  stops: Departure[];
 }
